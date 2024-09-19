@@ -1,0 +1,12 @@
+---
+- name: Playbook to wait for 10 minutes and return "yes"
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Wait for 10 minutes
+      wait_for:
+        timeout: 600
+
+    - name: Return "yes"
+      debug:
+        msg: "yes"
