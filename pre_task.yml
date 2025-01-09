@@ -14,7 +14,7 @@
 
     - name: Fetch secrets from Vault
       uri:
-        url: "https://vault.example.com/v1/secret/data/my_key"
+        url: "https://vault.example.com/v1/secret/data/my_key" #https://vault-new.aws.mobius.nat.bt.com
         method: GET
         headers:
           X-Vault-Token: "{{ decrypted_token.stdout }}"
