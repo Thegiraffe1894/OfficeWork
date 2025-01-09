@@ -1,0 +1,34 @@
+---
+- name: Pre-task to decrypt token and fetch Vault secrets
+  hosts: localhost
+  gather_facts: false
+  vars:
+    encrypted_token: "{{ encrypted_token }}"
+    vault_namespace: "{{ vault_namespace }}"
+  tasks:
+    - name: Decrypt the token
+      shell: |
+        echo "{{ encrypted_token }}" | openssl base64 -d | openssl rsautl -decrypt -inkey /path/to/private_key.pem
+      register: decrypted_token
+      no_log: true
+
+    - name: Fetch secrets from Vault
+      uri:
+        url: "https://vault.example.com/v1/secret/data/my_key"
+        method: GET
+        headers:
+          X-Vault-Token: "{{ decrypted_token.stdout }}"
+          X-Vault-Namespace: "{{ vault_namespace }}"
+        return_content: yes
+      register: vault_response
+      no_log: true
+
+    - name: Parse Vault response
+      set_fact:
+        vault_credentials: "{{ vault_response.content | from_json }}"
+
+    - name: Set AWX runtime variables
+      set_stats:
+        data:
+          vault_username: "{{ vault_credentials.data.data.username }}"
+          vault_password: "{{ vault_credentials.data.data.password }}"
