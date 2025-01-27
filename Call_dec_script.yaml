@@ -1,0 +1,25 @@
+- name: Execute Vault Pre-Execution Script
+  hosts: localhost
+  gather_facts: no
+  vars:
+    encrypted_token: "{{ lookup('env', 'vaultToken') }}"
+    vault_namespace: "{{ lookup('env', 'appid') }}"
+    private_key: "{{ VAULT_PRIVATE_KEY }}"
+    vault_script: "/var/lib/awx/projects/AutomationFrameworkCredentials/scripts/vault_pre_exec.sh"
+  tasks:
+    - name: Run Vault Pre-Execution Script
+      shell: "{{ vault_script }} '{{ encrypted_token }}' '{{ vault_namespace }}' '{{ private_key }}'"
+      register: vault_output
+      changed_when: false
+
+    - name: Parse JSON Output from Script
+      set_fact:
+        vault_credentials: "{{ vault_output.stdout | from_json }}"
+
+    - name: Display Retrieved Credentials (For Debugging - Remove in Production)
+      debug:
+        msg: "{{ vault_credentials }}"
+
+    - name: Use Retrieved Credentials in a Task
+      debug:
+        msg: "Username: {{ vault_credentials.username }}, Password: {{ vault_credentials.password }}"
